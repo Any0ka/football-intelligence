@@ -140,32 +140,85 @@ function renderLineup(svg) {
   $$("[data-b]", tools).forEach((b) => b.onclick = () => { S.bench = b.dataset.b; renderPitch(); });
   if ($("#reset")) $("#reset").onclick = () => { S.fixed = {}; S.whatIf = {}; S.lastMoved = null; renderPitch(); renderPanel(); };
 
+  let photos = 0, shown = false;
   const nodes = S.club.slots.map((s, i) => {
     const score = s[`score_${S.bench}`], w = S.whatIf[i], nm = slotName(s);
     const fill = w ? css("--surface-1") : score == null ? css("--neutral") : divColor(score);
     const txt = w ? css("--text-primary") : inkOn(score);
-    const sel = S.slot === i;
-    return `<g class="node${sel ? " sel" : ""}" data-i="${i}">
-      <circle class="hit" r="5"/>
-      ${s.need ? `<circle r="4" fill="none" stroke="var(--ring)" stroke-width=".5"/>` : ""}
-      ${sel ? `<circle r="4.8" fill="none" stroke="var(--series-1)" stroke-width=".65"/>` : ""}
-      ${i in S.fixed && !w ? `<circle r=".8" cx="2.6" cy="-2.6" fill="var(--text-secondary)"><title>закреплён</title></circle>` : ""}
-      <circle r="3.1" fill="${fill}" stroke="${w ? "var(--series-1)" : "var(--surface-1)"}" stroke-width="${w ? ".65" : ".5"}" ${w ? `stroke-dasharray="1 .7"` : ""}/>
-      <text y=".8" text-anchor="middle" font-size="2.3" font-weight="700" fill="${txt}">${w ? fmt(w.fit) : score == null ? "—" : fmt(score)}</text>
-      <text y="5.6" text-anchor="middle" font-size="2" fill="${nm.cand ? "var(--series-1)" : "var(--text-primary)"}" font-weight="${nm.cand ? 700 : 500}" paint-order="stroke" stroke="var(--pitch)" stroke-width=".5">${esc(nm.text)}</text>
+    const sel = S.slot === i, pin = i in S.fixed && !w, num = w ? fmt(w.fit) : score == null ? "—" : fmt(score);
+    const label = (y) => `<text y="${y}" text-anchor="middle" font-size="2" fill="${nm.cand ? "var(--series-1)" : "var(--text-primary)"}" font-weight="${nm.cand ? 700 : 500}" paint-order="stroke" stroke="var(--pitch)" stroke-width=".5">${esc(nm.text)}</text>`;
+    const url = w ? null : slotPhoto(s);
+    if (url) { photos++; shown ||= PHOTOS.get(url) === true; }
+    // two looks: the score circle, and the player's photo with the score in a badge - shown once the photo has
+    // loaded (loadPhotos), so without Transfermarkt the pitch stays as it was
+    const r = FACE.r, iw = 2 * r * FACE.zoom, ih = iw * 181 / 139, bx = .8 * r, by = .73 * r;
+    return `<g class="node${sel ? " sel" : ""}${PHOTOS.get(url) ? " pic" : ""}" data-i="${i}"${url ? ` data-photo="${esc(url)}"` : ""}>
+      <g class="plain">
+        <circle class="hit" r="5"/>
+        ${s.need ? `<circle r="4" fill="none" stroke="var(--ring)" stroke-width=".5"/>` : ""}
+        ${sel ? `<circle r="4.8" fill="none" stroke="var(--series-1)" stroke-width=".65"/>` : ""}
+        ${pin ? `<circle r=".8" cx="2.6" cy="-2.6" fill="var(--text-secondary)"><title>закреплён</title></circle>` : ""}
+        <circle r="3.1" fill="${fill}" stroke="${w ? "var(--series-1)" : "var(--surface-1)"}" stroke-width="${w ? ".65" : ".5"}" ${w ? `stroke-dasharray="1 .7"` : ""}/>
+        <text y=".8" text-anchor="middle" font-size="2.3" font-weight="700" fill="${txt}">${num}</text>
+        ${label(5.6)}
+      </g>
+      ${url ? `<g class="face">
+        <circle class="hit" r="${r + 1.6}"/>
+        ${s.need ? `<circle r="${r + .8}" fill="none" stroke="var(--ring)" stroke-width=".45"/>` : ""}
+        ${sel ? `<circle r="${r + 1.5}" fill="none" stroke="var(--series-1)" stroke-width=".7"/>` : ""}
+        ${pin ? `<circle r=".8" cx="${-.8 * r}" cy="${-.8 * r}" fill="var(--text-secondary)"><title>закреплён</title></circle>` : ""}
+        <circle r="${r}" fill="var(--surface-2)"/>
+        <image href="${esc(url)}" x="${-iw / 2}" y="${-FACE.cy * ih}" width="${iw}" height="${ih}" preserveAspectRatio="xMidYMin slice" clip-path="url(#face-clip)"/>
+        <circle r="${r - .25}" fill="none" stroke="${fill}" stroke-width=".5"/>
+        <rect x="${bx - 2.3}" y="${by - 2.3}" width="4.6" height="4.6" rx="2.3" fill="${fill}" stroke="var(--pitch)" stroke-width=".35"/>
+        <text x="${bx}" y="${by + .8}" text-anchor="middle" font-size="2.3" font-weight="700" fill="${txt}">${num}</text>
+        ${label(r + 3.2)}
+      </g>` : ""}
     </g>`;
   }).join("");
-  svg.innerHTML = pitchMarkup() + arrowUp + `<g id="ghosts"></g>` + nodes;
+  const clip = `<defs><clipPath id="face-clip"><circle r="${FACE.r}"/></clipPath></defs>`;
+  svg.innerHTML = clip + pitchMarkup() + arrowUp + `<g id="ghosts"></g>` + nodes;
   place(svg, shape());
   bindDrag(svg);
+  loadPhotos(svg);
 
   $("#pitch-legend").innerHTML = `
     <span><span class="dot" style="background:${divColor(15)}"></span> слабее</span>
     <span><span class="dot" style="background:${divColor(50)}; border:1px solid var(--line)"></span> медиана (${S.bench === "top6" ? "топ-6" : "лига"}) = 50</span>
     <span><span class="dot" style="background:${divColor(85)}"></span> сильнее</span>
     <span><svg width="14" height="14" viewBox="-7 -7 14 14"><circle r="5.5" fill="none" stroke="var(--ring)" stroke-width="1.2"/></svg> потребность</span>
-    ${Object.keys(S.whatIf).length ? `<span><svg width="14" height="14" viewBox="-7 -7 14 14"><circle r="5" fill="none" stroke="var(--series-1)" stroke-width="1.4" stroke-dasharray="2 1.5"/></svg> кандидат «что если», число — соответствие</span>` : ""}`;
+    ${Object.keys(S.whatIf).length ? `<span><svg width="14" height="14" viewBox="-7 -7 14 14"><circle r="5" fill="none" stroke="var(--series-1)" stroke-width="1.4" stroke-dasharray="2 1.5"/></svg> кандидат «что если», число — соответствие</span>` : ""}
+    ${photos ? `<span class="muted" id="photo-credit"${shown ? "" : " hidden"}>фото: Transfermarkt</span>` : ""}`;
   noteLineup();
+}
+
+// photo URL -> true (loaded), false (failed), null (loading)
+const PHOTOS = new Map();
+// a photo node on the pitch: radius in pitch yards, and the 139x181 portrait as wide as the circle, its centre
+// at 47 % of the height - the whole face from hair to chin fits, with no empty edges (zoom < 1 leaves some)
+const FACE = { r: 5.6, zoom: 1, cy: .47 };
+function slotPhoto(s) {
+  const url = s.players[0] && S.players.get(s.players[0][0])?.photo;
+  return url && PHOTOS.get(url) !== false ? url : null;
+}
+function loadPhotos(svg) {
+  // the browser fetches each photo once; a node switches to it only after it arrived
+  $$(".node[data-photo]", svg).forEach((n) => {
+    const url = n.dataset.photo;
+    if (PHOTOS.has(url)) return;
+    PHOTOS.set(url, null);
+    const im = new Image();
+    im.onload = () => {
+      PHOTOS.set(url, true);
+      const on = $$(".node[data-photo]", svg).filter((m) => m.dataset.photo === url);
+      if (!on.length) return;                       // the pitch has moved on to another club or view
+      on.forEach((m) => m.classList.add("pic"));
+      $("#photo-credit")?.removeAttribute("hidden");
+      place(svg, shape());                          // photos are bigger: spread the nodes a little more
+    };
+    im.onerror = () => PHOTOS.set(url, false);
+    im.src = url;
+  });
 }
 
 function noteLineup() {
@@ -195,13 +248,17 @@ function declutter(pts, w = 10.5, h = 7) {
 function place(svg, pos) {
   // move the existing nodes (no re-render, so a drag in progress keeps its element) and redraw the ghosts
   let ghosts = "";
-  const shown = declutter(pos.map((p) => P(...p))), base = declutter(S.base.map((p) => P(...p)));
+  const [w, h] = $(".node.pic", svg) ? [2.5 * FACE.r, 2.7 * FACE.r] : [10.5, 7];
+  const shown = declutter(pos.map((p) => P(...p)), w, h), base = declutter(S.base.map((p) => P(...p)), w, h);
   S.club.slots.forEach((s, i) => {
     const [x, y] = shown[i], [bx, by] = base[i];
     $(`.node[data-i="${i}"]`, svg).setAttribute("transform", `translate(${x},${y})`);
     if (Math.hypot(pos[i][0] - S.base[i][0], pos[i][1] - S.base[i][1]) > 0.6) ghosts += `<circle class="ghost-dot" cx="${bx}" cy="${by}" r="3"/><line class="moved-line" x1="${bx}" y1="${by}" x2="${x}" y2="${y}"/>`;
   });
   $("#ghosts", svg).innerHTML = ghosts;
+  // a node higher on the pitch is drawn later, so the name under it stays on top of the photo below
+  const nodes = $$(".node", svg), want = [...nodes].sort((a, b) => shown[b.dataset.i][1] - shown[a.dataset.i][1]);
+  if (want.some((n, k) => n !== nodes[k])) want.forEach((n) => svg.appendChild(n));
 }
 
 function moveNote(pos) {
@@ -467,6 +524,12 @@ function rawValue(m, v) {
   return `${fmt(v, 2)} /90`;
 }
 
+// Transfermarkt portrait, loaded from their server (today's photo, not 2016's); a silhouette when there is none
+const NO_PHOTO = `<div class="photo-none" role="img" aria-label="Нет фото"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>нет фото</div>`;
+function photo(p) {
+  return `<figure class="photo">${p.photo ? `<img src="${esc(p.photo)}" alt="Фото: ${esc(p.name)}" referrerpolicy="no-referrer">` : NO_PHOTO}</figure>`;
+}
+
 function panelPlayer(el) {
   if (S.slot == null) { el.innerHTML = `<div class="empty">Нажмите на игрока на поле</div>`; return; }
   const slot = S.club.slots[S.slot], p = S.players.get(S.player);
@@ -481,13 +544,14 @@ function panelPlayer(el) {
     <div class="row spread"><h2>${slot.code} · ${SLOT_RU[slot.code] ?? ""}</h2>${slot.need ? `<span class="badge">потребность: ${esc(slot.reason)}</span>` : ""}</div>
     <p class="small muted">Кто играл на позиции (минуты):</p><div class="chips">${chips}</div>
     <div class="card" style="margin-top:12px">
-      <div class="row spread"><div><h2>${esc(p.name)}</h2><div class="small muted">${[p.full_name, p.country].filter(Boolean).map(esc).join(" · ")} · ${p.age ? fmt(p.age) + " лет летом 2016" : "возраст неизвестен"}</div></div>
-        <div style="text-align:right"><div style="font-size:26px;font-weight:700">${fmt(score)}</div><div class="small muted">оценка роли к: ${BENCH_RU[bench]}</div></div></div>
-      <div class="kpis" style="margin-top:10px">
-        ${kpi(fmt(p.minutes), "минут за сезон", groups.length > 1 ? `в ${groups.length} ролях` : S.index.groups[g])}
-        ${kpi(money(p.value), "рыночная стоимость", p.value_date ? `оценка от ${p.value_date}` : "нет оценки")}
-        ${kpi(pf?.fair ? money(pf.fair) : "—", "справедливая (модель)", pf?.fair ? (pf.fair > p.value ? `×${fmt(pf.fair / p.value, 1)} — рынок недооценивает` : `×${fmt(pf.fair / p.value, 1)} — рынок ценит выше`) : "мало минут для оценки")}
-      </div>
+      <div class="who">${photo(p)}
+        <div class="row spread" style="align-items:flex-start"><div><h2>${esc(p.name)}</h2><div class="small muted">${[p.full_name, p.country].filter(Boolean).map(esc).join(" · ")} · ${p.age ? fmt(p.age) + " лет летом 2016" : "возраст неизвестен"}</div></div>
+          <div style="text-align:right"><div style="font-size:26px;font-weight:700">${fmt(score)}</div><div class="small muted">оценка роли к: ${BENCH_RU[bench]}</div></div></div>
+        <div class="kpis">
+          ${kpi(fmt(p.minutes), "минут за сезон", groups.length > 1 ? `в ${groups.length} ролях` : S.index.groups[g])}
+          ${kpi(money(p.value), "рыночная стоимость", p.value_date ? `оценка от ${p.value_date}` : "нет оценки")}
+          ${kpi(pf?.fair ? money(pf.fair) : "—", "справедливая (модель)", pf?.fair ? (pf.fair > p.value ? `×${fmt(pf.fair / p.value, 1)} — рынок недооценивает` : `×${fmt(pf.fair / p.value, 1)} — рынок ценит выше`) : "мало минут для оценки")}
+        </div></div>
     </div>
     ${groups.length > 1 ? `<div class="chips" style="margin-bottom:8px">${groups.map((x) => `<button class="chip ${x === g ? "on" : ""}" data-g="${x}">${S.index.groups[x]} · ${fmt(p.groups[x].minutes)}′</button>`).join("")}</div>` : ""}
     <div class="row spread"><h3 style="margin:8px 0">Показатели — процентиль к: ${BENCH_RU[bench]}</h3>
@@ -497,6 +561,8 @@ function panelPlayer(el) {
     <h3>Где действует</h3>
     <div class="mini-pitches">${heatMini(p.grid)}${p.shots.length ? shotsMini(p.shots) : ""}</div>
     <div class="row" style="margin-top:14px"><button class="btn" id="go-replace">Кем заменить →</button></div>`;
+  const img = $(".photo img", el);
+  if (img) img.onerror = () => { img.parentElement.innerHTML = NO_PHOTO; };   // Transfermarkt down or blocking
   $$("[data-p]", el).forEach((b) => b.onclick = () => { S.player = +b.dataset.p; S.cand = null; renderPanel(); });
   $$("[data-g]", el).forEach((b) => b.onclick = () => { S.group = b.dataset.g; renderPanel(); });
   $$("[data-pb]", el).forEach((b) => b.onclick = () => { S.pbench = b.dataset.pb; renderPanel(); });

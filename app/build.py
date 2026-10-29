@@ -63,7 +63,7 @@ def slug(name: str) -> str:
 def player_cards(team: str, table: pd.DataFrame, pcts: dict, europe: pd.DataFrame, links: pd.DataFrame,
                  ev: pd.DataFrame) -> list:
     """Every player of the club: per-90 numbers per position group, percentiles against three benchmarks,
-    market value and fair value, a touch map and his shots."""
+    market value and fair value, his photo, a touch map and his shots."""
     mine = table[(table["team"] == team) & (table["minutes"] >= MIN_GROUP_MINUTES)]
     lk = links[links["team"] == team].set_index("player_id")
     eu = europe[europe["team"] == team].set_index(["player_id", "group"])
@@ -99,6 +99,7 @@ def player_cards(team: str, table: pd.DataFrame, pcts: dict, europe: pd.DataFram
             "country": None if info is None else info.get("country"),
             "minutes": r(rows["minutes"].sum(), 0), "groups": groups,
             "tm_id": None if info is None or pd.isna(info["tm_player_id"]) else int(info["tm_player_id"]),
+            "photo": None if info is None or pd.isna(info["photo"]) else info["photo"],
             "age": None if info is None else r(info["age"], 1),
             "value": None if info is None else r(info["value"], 0),
             "value_date": None if info is None or pd.isna(info["value_date"]) else str(info["value_date"].date()),
@@ -233,6 +234,7 @@ def main():
     print("лиги:", ", ".join(leagues), flush=True)
     players, teams = fp.load(leagues)
     links = pd.concat([fp.links(c) for c in leagues], ignore_index=True)
+    links["photo"] = fv.photos(links["tm_player_id"])       # not in the cached links: older caches get it too
     keys = ["player_id", "team"]
     europe = fm.percentiles(players).merge(
         links[keys + ["tm_player_id", "value", "value_date", "stale", "age"]], on=keys, how="left")

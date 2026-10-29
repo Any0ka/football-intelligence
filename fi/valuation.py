@@ -51,6 +51,13 @@ def ages(tm_ids: pd.Series, date: str = DECISION_DATE) -> pd.Series:
     return (pd.Timestamp(date) - tm_ids.map(dob)).dt.days / 365.25
 
 
+def photos(tm_ids: pd.Series) -> pd.Series:
+    """Transfermarkt portrait URL. The page loads it from their server: the photos are not CC0 like the data, and
+    they are today's, not 2016's. Transfermarkt's "no photo" silhouette becomes NaN so the page draws its own."""
+    url = pd.read_csv(TM / "players.csv.gz", usecols=["player_id", "image_url"]).set_index("player_id")["image_url"]
+    return tm_ids.map(url[~url.str.contains("/default.jpg", na=True, regex=False)])
+
+
 def player_rows(pct: pd.DataFrame) -> pd.DataFrame:
     """One row per player: his main (team, group) by minutes, with total minutes over all his rows."""
     main = pct.sort_values("minutes", ascending=False).drop_duplicates("player_id").copy()
