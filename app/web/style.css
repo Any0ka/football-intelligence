@@ -16,6 +16,7 @@
   --good: #0ca30c;
   --critical: #d03b3b;
   --ring: #0b0b0b;
+  --scrim: rgba(14, 14, 12, .56);
   --shadow: 0 1px 2px rgba(0, 0, 0, .06), 0 4px 14px rgba(0, 0, 0, .05);
   --radius: 10px;
 }
@@ -36,6 +37,7 @@
     --series-2: #d95926;
     --neutral: #383835;
     --ring: #f0efec;
+    --scrim: rgba(0, 0, 0, .7);
     --shadow: none;
   }
 }
@@ -55,6 +57,7 @@
   --series-2: #d95926;
   --neutral: #383835;
   --ring: #f0efec;
+  --scrim: rgba(0, 0, 0, .7);
   --shadow: none;
 }
 
@@ -200,7 +203,7 @@ tr.on td { background: var(--surface-2); }
 .method strong { color: var(--text-primary); }
 
 .tip {
-  position: fixed; z-index: 10; pointer-events: none; max-width: 280px;
+  position: fixed; z-index: 60; pointer-events: none; max-width: 280px;
   background: var(--surface-1); color: var(--text-primary); border: 1px solid var(--line);
   border-radius: 8px; padding: 7px 9px; font-size: 12.5px; box-shadow: 0 6px 20px rgba(0, 0, 0, .15);
 }
@@ -272,3 +275,50 @@ tr.on td { background: var(--surface-2); }
 body.ai-open .ai-fab { display: none; }
 @media (min-width: 1200px) { body.ai-open .layout, body.ai-open .foot { margin-right: 420px; max-width: none; } }
 @media (max-width: 560px) { .ai-fab span { display: none; } .ai-fab { padding: 13px; } }
+
+/* ---- guided tour */
+.tour-btn { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; color: var(--series-1); border-color: var(--series-1); }
+.tour-btn svg { width: 16px; height: 16px; }
+.tour-btn.pulse { animation: tour-pulse 1.8s ease-out infinite; }
+@keyframes tour-pulse {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--series-1) 50%, transparent); }
+  80%, 100% { box-shadow: 0 0 0 9px color-mix(in srgb, var(--series-1) 0%, transparent); }
+}
+.tour { position: fixed; inset: 0; z-index: 50; pointer-events: none; }
+.tour[hidden] { display: none; }
+.tour-dim { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.tour-dim path { fill: var(--scrim); pointer-events: visiblePainted; }    /* the holes stay clickable */
+.tour-dim rect { fill: none; stroke: var(--series-1); stroke-width: 2; }
+.tour-card {
+  position: absolute; left: 50%; top: 50%; width: 370px; max-width: calc(100vw - 20px); max-height: calc(100vh - 20px); overflow-y: auto;
+  pointer-events: auto; background: var(--surface-1); color: var(--text-primary); border-radius: 12px;
+  box-shadow: 0 14px 44px rgba(0, 0, 0, .3); padding: 12px 16px 14px; transition: left .25s ease, top .25s ease;
+}
+.tour-card.nudge { animation: tour-nudge .35s; }
+@keyframes tour-nudge { 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+.tour-top { display: flex; align-items: center; gap: 10px; font-size: 12px; }
+.tour-chapter { color: var(--series-1); font-weight: 700; text-transform: uppercase; letter-spacing: .06em; margin-right: auto; }
+.tour-x { border: 0; background: transparent; color: var(--text-muted); padding: 2px 4px; font-size: 14px; }
+.tour-bar { height: 3px; background: var(--surface-2); border-radius: 2px; margin: 8px 0 10px; overflow: hidden; }
+.tour-bar i { display: block; height: 100%; background: var(--series-1); border-radius: 2px; transition: width .25s; }
+.tour-card h3 { margin: 0 0 6px; font-size: 16px; }
+.tour-body p { margin: 0 0 8px; color: var(--text-secondary); }
+.tour-body b { color: var(--text-primary); }
+.tour-body .row { margin-top: 10px; }
+.tour-task { margin: 4px 0 2px; padding: 8px 10px; border-radius: 8px; background: var(--surface-2); border-left: 3px solid var(--series-2); font-size: 13px; color: var(--text-secondary); }
+.tour-task[hidden] { display: none; }
+.tour-task b { color: var(--text-primary); }
+.tour-task.ok { border-left-color: var(--good); }
+.tour-task .link { border: 0; background: none; padding: 0; color: var(--series-1); text-decoration: underline; font-size: 13px; }
+.tour-nav { display: flex; justify-content: space-between; gap: 8px; margin-top: 12px; }
+.tour-nav button:disabled { visibility: hidden; }
+@media (max-width: 640px) {
+  .tour-card { padding: 10px 14px 12px; font-size: 13px; }
+  .tour-card h3 { font-size: 15px; }
+  .tour-body p { margin-bottom: 6px; }
+  .tour-nav { margin-top: 8px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tour-btn.pulse, .tour-card.nudge { animation: none; }
+  .tour-card, .tour-bar i { transition: none; }
+}

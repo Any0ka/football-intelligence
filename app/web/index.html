@@ -16,6 +16,9 @@
   <div class="pickers">
     <label>Лига <select id="league"></select></label>
     <label>Клуб <select id="club"></select></label>
+    <button id="tour-btn" class="ghost tour-btn" type="button" title="Пошаговый тур по сайту на примере «Челси»">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16 8l-2.6 5.4L8 16l2.6-5.4z" fill="currentColor"/></svg>Гид
+    </button>
     <button id="theme" class="ghost" title="Светлая / тёмная тема" aria-label="Сменить тему">◐</button>
   </div>
 </header>
@@ -78,7 +81,21 @@
   </form>
 </aside>
 
+<div id="tour" class="tour" hidden>
+  <svg id="tour-dim" class="tour-dim" aria-hidden="true"><path fill-rule="evenodd"/><g id="tour-rings"></g></svg>
+  <div id="tour-card" class="tour-card" role="dialog" aria-labelledby="tour-title" aria-describedby="tour-body">
+    <div class="tour-top"><span id="tour-chapter" class="tour-chapter"></span><span id="tour-count" class="muted"></span>
+      <button id="tour-x" class="tour-x" type="button" aria-label="Закончить тур">✕</button></div>
+    <div class="tour-bar"><i id="tour-bar"></i></div>
+    <h3 id="tour-title"></h3>
+    <div id="tour-body" class="tour-body" aria-live="polite"></div>
+    <div id="tour-task" class="tour-task" hidden></div>
+    <div class="tour-nav"><button id="tour-back" class="ghost" type="button">← Назад</button><button id="tour-next" class="btn" type="button">Дальше →</button></div>
+  </div>
+</div>
+
 <div id="tip" class="tip" role="tooltip" hidden></div>
 <script src="app.js"></script>
+<script src="tour.js"></script>
 </body>
 </html>

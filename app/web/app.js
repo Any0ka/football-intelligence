@@ -8,7 +8,7 @@ const S = {
   view: "lineup", bench: "top6", tab: "club", slot: null, player: null, group: null, pbench: "top6",
   base: null, fixed: {}, whatIf: {}, lastMoved: null, manager: 0, cand: null, compare: "player",
   filters: { maxAge: 29, maxPrice: 50, better: true, leagues: null },
-  weights: null, budget: 120, future: false,
+  weights: null, budget: null, future: false, plan: null,
 };
 const SLOT_RU = {
   GK: "Вратарь", RB: "Правый защитник", RCB: "Правый центральный защитник", CB: "Центральный защитник",
@@ -618,6 +618,7 @@ function panelPlan(el) {
   })(0, 0, 0, []);
   const spent = best.reduce((s, [, c]) => s + c.value, 0), fair = best.reduce((s, [, c]) => s + c.fair, 0);
   const later18 = best.reduce((s, [, c]) => s + (c.v2018 ?? 0), 0);
+  S.plan = { budget: S.budget, best, spent, later18 };
   el.innerHTML = `<h2>План трансферов под бюджет</h2>
     <p class="small muted">По одному игроку на каждую позицию-потребность, чтобы сумма оценок TOPSIS была максимальной и цены укладывались в бюджет. Фильтры и веса — с вкладки «Кем заменить», сравнение — с позицией в целом.</p>
     <div class="controls">${range("budget", "Бюджет", S.budget, 10, 300, 10, (v) => `€${v} млн`)}</div>
@@ -829,6 +830,13 @@ function fillClubs() {
   $("#club").innerHTML = l.clubs.map((c) => `<option value="${esc(c.team)}" ${c.team === S.team ? "selected" : ""}>${c.place}. ${esc(c.team)}</option>`).join("");
 }
 
+function resetChoices() {                            // filters, weights and budget as the method sets them
+  S.weights = Object.fromEntries(Object.entries(S.index.criteria).map(([k, c]) => [k, Math.round(c.weight * 100)]));
+  S.filters = { maxAge: S.index.rules.max_age, maxPrice: S.index.rules.max_price / 1e6, better: true,
+                leagues: new Set(S.index.candidate_leagues.map((l) => l.name)) };
+  S.compare = "player"; S.budget = 120;
+}
+
 async function boot() {
   const theme = new URLSearchParams(location.search).get("theme") || store.get("fi-theme");
   if (theme) document.documentElement.dataset.theme = theme;
@@ -843,9 +851,7 @@ async function boot() {
     $("#panel").innerHTML = `<div class="empty">Нет данных: сначала соберите их — <code>python -m app.build</code><br>${esc(e.message)}</div>`;
     return;
   }
-  S.weights = Object.fromEntries(Object.entries(S.index.criteria).map(([k, c]) => [k, Math.round(c.weight * 100)]));
-  S.filters.maxAge = S.index.rules.max_age; S.filters.maxPrice = S.index.rules.max_price / 1e6;
-  S.filters.leagues = new Set(S.index.candidate_leagues.map((l) => l.name));
+  resetChoices();
   $$("#views button").forEach((b) => b.onclick = () => { S.view = b.dataset.view; renderPitch(); });
   $$("#tabs button").forEach((b) => b.onclick = () => setTab(b.dataset.tab));
   $("#league").onchange = (e) => { const l = S.index.leagues.find((x) => x.name === e.target.value); selectClub(l.name, l.clubs[0].team); };
