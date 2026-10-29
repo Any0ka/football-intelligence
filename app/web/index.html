@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Football Intelligence</title>
+<meta name="description" content="От тактики к трансферам: слабые позиции клуба, кем их закрыть и кто из кандидатов недооценён. Сезон 2015/16, решение летом 2016.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <h1>Football Intelligence</h1>
+    <p class="muted">Сезон 2015/16 · решение принимается летом 2016 — только то, что клуб мог знать тогда</p>
+  </div>
+  <div class="pickers">
+    <label>Лига <select id="league"></select></label>
+    <label>Клуб <select id="club"></select></label>
+    <button id="theme" class="ghost" title="Светлая / тёмная тема" aria-label="Сменить тему">◐</button>
+  </div>
+</header>
+
+<main class="layout">
+  <section class="pitch-col" aria-label="Поле">
+    <div class="seg" role="tablist" id="views">
+      <button data-view="lineup" class="on">Состав</button>
+      <button data-view="network">Сеть передач</button>
+      <button data-view="scored">Где забиваем</button>
+      <button data-view="conceded">Где пропускаем</button>
+    </div>
+    <div class="pitch-tools" id="pitch-tools"></div>
+    <div class="pitch-wrap">
+      <svg id="pitch" viewBox="-3 -3 86 126" role="img" aria-label="Футбольное поле, вид сверху"></svg>
+    </div>
+    <div class="pitch-legend" id="pitch-legend"></div>
+    <div class="pitch-note" id="pitch-note"></div>
+  </section>
+
+  <section class="panel-col">
+    <nav class="tabs" id="tabs">
+      <button data-tab="club" class="on">Клуб</button>
+      <button data-tab="player">Игрок</button>
+      <button data-tab="replace">Кем заменить</button>
+      <button data-tab="plan">План трансферов</button>
+      <button data-tab="value">Стоимость</button>
+      <button data-tab="finance">Доходность</button>
+      <button data-tab="method">Как это работает</button>
+    </nav>
+    <div id="panel" class="panel"></div>
+  </section>
+</main>
+
+<footer class="foot muted">
+  Данные: <a href="https://github.com/hudl/open-data" target="_blank" rel="noopener">StatsBomb Open Data</a> (события матчей) ·
+  <a href="https://github.com/dcaribou/transfermarkt-datasets" target="_blank" rel="noopener">transfermarkt-datasets</a> (рыночные стоимости, CC0).
+  Учебный проект, не связан со StatsBomb, Transfermarkt и клубами.
+</footer>
+
+<button id="ai-fab" class="ai-fab" type="button" hidden>
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l1.9 5.6L19.5 9.5l-5.6 1.9L12 17l-1.9-5.6L4.5 9.5l5.6-1.9zM19 14l.9 2.6 2.6.9-2.6.9L19 21l-.9-2.6-2.6-.9 2.6-.9z"/></svg>
+  <span>Спросить ИИ</span>
+</button>
+<aside id="ai" class="ai" hidden aria-label="ИИ-помощник">
+  <div class="ai-head">
+    <div class="ai-title"><b>ИИ-помощник</b><small id="ai-sub">отвечает по данным приложения</small></div>
+    <button class="ghost" id="ai-new" type="button">Новый диалог</button>
+    <button class="ghost" id="ai-close" type="button" aria-label="Закрыть">✕</button>
+  </div>
+  <div class="ai-log" id="ai-log">
+    <div class="ai-hello" id="ai-hello">
+      <p>Спросите что угодно: про клуб на экране, игроков, замены, деньги, методику или футбол вообще. Числа я беру из тех же расчётов, что и страница, и могу открыть нужное на экране.</p>
+      <div class="chips" id="ai-chips"></div>
+    </div>
+  </div>
+  <form class="ai-form" id="ai-form">
+    <textarea id="ai-input" rows="1" maxlength="2000" placeholder="Ваш вопрос…" aria-label="Вопрос ИИ-помощнику"></textarea>
+    <button class="btn" id="ai-send" type="submit" aria-label="Отправить">↑</button>
+  </form>
+</aside>
+
+<div id="tip" class="tip" role="tooltip" hidden></div>
+<script src="app.js"></script>
+</body>
+</html>

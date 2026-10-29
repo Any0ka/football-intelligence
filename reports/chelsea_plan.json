@@ -1,0 +1,156 @@
+{
+ "decision_date": "2016-06-30",
+ "budget_eur": 120000000.0,
+ "criteria": {
+  "fit": [
+   0.45,
+   true
+  ],
+  "gap": [
+   0.3,
+   true
+  ],
+  "age": [
+   0.1,
+   false
+  ],
+  "role_minutes": [
+   0.15,
+   true
+  ]
+ },
+ "rules": {
+  "max_age": 29,
+  "max_price": 50000000.0,
+  "side_share": 0.6
+ },
+ "value_model": {
+  "ridge": {
+   "r2": 0.7392948424918548,
+   "median_x": 1.4679933201103383
+  },
+  "boosting": {
+   "r2": 0.7815951040504363,
+   "median_x": 1.4134208150538667
+  },
+  "chosen": "boosting",
+  "n": 1372
+ },
+ "needs": [
+  {
+   "slot": "GK",
+   "group": "GK",
+   "score": 18.497098008178337,
+   "main": "Thibaut Courtois",
+   "main_age": 24.136892539356605,
+   "reason": "ниже топ-6 (18)",
+   "weights": {
+    "goals_prevented": 0.5637410258068689,
+    "save_pct": 0.43625897419313114
+   },
+   "incumbent_fit": 44.28415265574842
+  },
+  {
+   "slot": "RB",
+   "group": "FB",
+   "score": 37.63390965763512,
+   "main": "Branislav Ivanović",
+   "main_age": 32.35318275154004,
+   "reason": "ниже топ-6 (38); Ivanović — 32 года",
+   "weights": {
+    "tackle_int_padj": 0.1872261718865511,
+    "dribbled_past": 0.15763151142148804,
+    "prog_passes": 0.22923485044322833,
+    "prog_carries": 0.20349584243907695,
+    "xa": 0.2224116238096555
+   },
+   "incumbent_fit": 49.25322822773559
+  },
+  {
+   "slot": "LCB",
+   "group": "CB",
+   "score": 47.3870381007084,
+   "main": "John Terry",
+   "main_age": 35.56194387405886,
+   "reason": "Terry — 35 лет",
+   "weights": {
+    "def_actions_padj": 0.21935925837441814,
+    "aerial_win_pct": 0.2472227048628456,
+    "dribbled_past": 0.15230328171491866,
+    "pass_pct": 0.15230328171491866,
+    "prog_passes": 0.22881147333289897
+   },
+   "incumbent_fit": 56.771082541453204
+  },
+  {
+   "slot": "LB",
+   "group": "FB",
+   "score": 44.596489222885765,
+   "main": "César Azpilicueta",
+   "main_age": 26.83915126625599,
+   "reason": "ниже топ-6 (45)",
+   "weights": {
+    "tackle_int_padj": 0.17012855670303598,
+    "dribbled_past": 0.17012855670303598,
+    "prog_passes": 0.17012855670303598,
+    "prog_carries": 0.21828578096738435,
+    "xa": 0.27132854892350783
+   },
+   "incumbent_fit": 49.3229781404541
+  },
+  {
+   "slot": "ST",
+   "group": "CF",
+   "score": 40.26929602813689,
+   "main": "Diego Costa",
+   "main_age": 27.72895277207392,
+   "reason": "ниже топ-6 (40)",
+   "weights": {
+    "npxg": 0.1516659881627157,
+    "finishing": 0.17700811073184483,
+    "shots": 0.20021294585538474,
+    "xa": 0.19313875927723673,
+    "pressures": 0.13983340118372845,
+    "aerial_win_pct": 0.13814079478908967
+   },
+   "incumbent_fit": 49.06957791744771
+  }
+ ],
+ "plan": [
+  {
+   "slot": "GK",
+   "player": "Yoan Cardinale",
+   "team": "OGC Nice",
+   "tm_player_id": 241231,
+   "value": 600000.0
+  },
+  {
+   "slot": "RB",
+   "player": "Alessandro Florenzi",
+   "team": "AS Roma",
+   "tm_player_id": 130365,
+   "value": 20000000.0
+  },
+  {
+   "slot": "LCB",
+   "player": "Virgil van Dijk",
+   "team": "Southampton",
+   "tm_player_id": 139208,
+   "value": 12000000.0
+  },
+  {
+   "slot": "LB",
+   "player": "Marcelo",
+   "team": "Real Madrid",
+   "tm_player_id": 44501,
+   "value": 30000000.0
+  },
+  {
+   "slot": "ST",
+   "player": "Paulo Dybala",
+   "team": "Juventus",
+   "tm_player_id": 206050,
+   "value": 40000000.0
+  }
+ ]
+}
